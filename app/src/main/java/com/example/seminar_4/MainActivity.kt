@@ -6,6 +6,7 @@ import com.example.seminar_4.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -30,9 +31,19 @@ class MainActivity : AppCompatActivity() {
                 createSpeedometerValues()
                     .map {
                         if (binding.metricsswitch.isChecked) {
-                            (it / 1.6).toInt().toString() + getString(R.string.mph)
+                            (it / 1.6).toInt()
                         } else {
-                            it.toString() + getString(R.string.kmh)
+                            it
+                        }
+                    }
+                    .filter {
+                        if (binding.by5switch.isChecked) it % 5 == 0 else true
+                    }
+                    .map {
+                        it.toString() + if (binding.metricsswitch.isChecked) {
+                            getString(R.string.mph)
+                        } else {
+                            getString(R.string.kmh)
                         }
                     }
                     .collect {

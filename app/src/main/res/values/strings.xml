@@ -3,4 +3,5 @@
     <string name="start">Старт</string>
     <string name="mph">миль/ч</string>
     <string name="kmh">км/ч</string>
+    <string name="by5">Кратно 5</string>
 </resources>
