@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.seminar_4.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
@@ -13,6 +15,7 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val scope = CoroutineScope(Dispatchers.IO)
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,12 +25,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.button.setOnClickListener {
-            scope.launch {
-                createSpeedometerValues().collect {
-                    withContext(Dispatchers.Main) {
-                        binding.speedometer.text = it.toString()
+            job?.cancel()
+            job = scope.launch {
+                createSpeedometerValues()
+                    .map {
+                        if (binding.metricsswitch.isChecked) {
+                            (it / 1.6).toInt().toString() + getString(R.string.mph)
+                        } else {
+                            it.toString() + getString(R.string.kmh)
+                        }
                     }
-                }
+                    .collect {
+                        withContext(Dispatchers.Main) {
+                            binding.speedometer.text = it
+                        }
+                    }
             }
         }
     }
