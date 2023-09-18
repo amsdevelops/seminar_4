@@ -6,6 +6,7 @@ import com.example.seminar_4.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -28,7 +29,9 @@ class MainActivity : AppCompatActivity() {
         binding.button.setOnClickListener {
             job?.cancel()
             job = scope.launch {
-                createSpeedometerValues()
+                createSpeedometerValues().combine(createSpeedometerValues2()) { speed1, speed2 ->
+                    (speed1 + speed2) / 2
+                }
                     .map {
                         if (binding.metricsswitch.isChecked) {
                             (it / 1.6).toInt()
@@ -56,6 +59,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun createSpeedometerValues() = flow {
+        var isAccelerate = true
+        var speed = 0
+        while (true) {
+            Thread.sleep(Random.nextLong(500))
+            if (isAccelerate) {
+                speed++
+                if (speed == 100) isAccelerate = false
+            } else {
+                speed--
+                if (speed == 0) isAccelerate = true
+            }
+            emit(speed)
+        }
+    }
+
+    fun createSpeedometerValues2() = flow {
         var isAccelerate = true
         var speed = 0
         while (true) {
